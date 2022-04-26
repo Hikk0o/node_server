@@ -1,0 +1,104 @@
+body {
+    font-family: 'Rubik', sans-serif;
+    margin: 0;
+    color: #F1F1F1;
+    z-index: 1;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.4)
+}
+
+.logo {
+    z-index: 2;
+    user-select: none;
+    position: fixed;
+    margin-left: 20px;
+    margin-top: 15px;
+    color: #F1F1F1;
+    font-size: 25px;
+    padding: 10px;
+}
+
+.logo a {
+    font-family: "consolas", sans-serif;
+    font-weight: 600;
+    text-decoration: none;
+    color: #F1F1F1;
+}
+
+.main {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.special-color {
+    color: #787dbd;
+}
+.special-font {
+    font-family: "consolas", sans-serif;
+    font-weight: 100;
+}
+
+.about-block {
+    z-index: 1;
+    height: 100vh;
+    width: 100vw;
+    text-align: center;
+    font-size: 25px;
+    font-weight: 400;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.about-block-dynamic {
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end
+
+}
+
+.about-text {
+    height: 100px;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+        margin-top: 10px;
+    }
+    100% {
+        opacity: 1;
+        margin-top: 0;
+    }
+}
+
+#anim-background {
+    position: fixed;
+    z-index: 0;
+    height: 100vh;
+    width: 100vw;
+
+    background: linear-gradient(299deg, #1e1f2a, #2c2d41);
+    background-size: 400% 400%;
+
+    animation: AnimationName 10s ease infinite;
+}
+
+@keyframes AnimationName {
+    0%{background-position:0 13%}
+    50%{background-position:100% 88%}
+    100%{background-position:0 13%}
+}
+
+.logo.animate__animated.animate__fadeInLeft {
+    --animate-duration: 0.7s;
+}
+
+@font-face {
+    font-family: "consolas";
+    font-style: normal;
+    src: local("consolas"),
+    url('../fonts/consolas.ttf')  format('truetype')
+}
