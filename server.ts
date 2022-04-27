@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import * as https from 'https'
+const https = require('https');
+const fs = require('fs');
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
