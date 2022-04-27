@@ -6,10 +6,10 @@ const options = {
     cert: fs.readFileSync('ssl/apache2.cert')
 };
 
+const sitePath = './site/';
 
 https.createServer(options, function (req, res) {
-    console.log(req.url)
-    const sitePath = './site/';
+    console.log(req.socket.address(), 'URL:', req.url)
     switch (req.url) {
         case '/favicon.ico':
             res.end()
@@ -23,15 +23,14 @@ https.createServer(options, function (req, res) {
         case '/':
             fs.readFile(sitePath + 'index.html', null, function (error, html) {
                 if (error) {
-                    res.writeHead(404);
-                    res.write('Whoops! File not found!');
+                    page404(res)
                 } else {
                     res.writeHead(301, {
                         'Content-Type': 'text/html',
                     });
                     res.write(html);
+                    res.end();
                 }
-                res.end();
             });
             break
         default:
@@ -41,7 +40,7 @@ https.createServer(options, function (req, res) {
                     Location: redirects[req.url]
                 });
                 res.end()
-            } else if (req.url.endsWith('.js') || req.url.endsWith('.css')) {
+            } else if (req.url.endsWith('.js') || req.url.endsWith('.css') || req.url.endsWith('.png')) {
                 let contentType = ''
                 if (req.url.endsWith('.js')) {
                     contentType = 'text/javascript'
@@ -49,33 +48,40 @@ https.createServer(options, function (req, res) {
                 if (req.url.endsWith('.css')) {
                     contentType = 'text/css'
                 }
+                if (req.url.endsWith('.png')) {
+                    contentType = 'image/png'
+                }
                 fs.readFile(sitePath + req.url, null, function (error, html) {
                     if (error) {
-                        res.writeHead(404);
-                        res.write('Whoops! File not found!');
+                        page404(res)
                     } else {
                         res.writeHead(200, {
                             'Content-Type': contentType,
                             'Cache-Control': 'max-age=31536000'
                         });
                         res.write(html);
+                        res.end();
                     }
-                    res.end();
                 });
             } else {
-                fs.readFile(sitePath + 'errors/404.html', null, function (error, html) {
-                    if (error) {
-                        res.writeHead(404);
-                        res.write('Whoops! File not found!');
-                    } else {
-                        res.writeHead(200, {
-                            'Content-Type': 'text/html',
-                            'Cache-Control': 'max-age=31536000'
-                        });
-                        res.write(html);
-                    }
-                    res.end();
-                });
+                page404(res)
             }
     }
-}).listen(443);
+}).listen(443, '0.0.0.0');
+
+function page404(res) {
+    fs.readFile(sitePath + 'errors/404.html', null, function (error, html) {
+        if (error) {
+            res.writeHead(404);
+            res.write('Whoops! File not found!');
+            res.end()
+        } else {
+            res.writeHead(200, {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'max-age=31536000'
+            });
+            res.write(html);
+            res.end()
+        }
+    });
+}
