@@ -9,7 +9,7 @@ const options = {
 const sitePath = './site/';
 
 https.createServer(options, function (req, res) {
-    console.log(req.socket.address(), 'URL: ' + req.url)
+    console.log(req.headers['x-forwarded-for'], 'URL: ' + req.url)
     switch (req.url) {
         case '/favicon.ico':
             res.end()
