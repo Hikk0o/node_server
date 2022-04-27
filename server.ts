@@ -1,5 +1,5 @@
-const https = require('https');
-const fs = require('fs');
+import * as fs from 'fs'
+import * as https from 'https'
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
@@ -14,7 +14,13 @@ https.createServer(options, function (req, res) {
         case '/favicon.ico':
             res.end()
             break
-        case '/' || '/index.html':
+        case '/index.html':
+            res.writeHead(301,{
+                Location: '/'
+            });
+            res.end()
+            break
+        case '/':
             fs.readFile(sitePath + 'index.html', null, function (error, html) {
                 if (error) {
                     res.writeHead(404);
