@@ -1,5 +1,6 @@
 const https = require('https');
 const fs = require('fs');
+const requestIp = require('request-ip');
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
@@ -9,7 +10,7 @@ const options = {
 const sitePath = './site/';
 
 https.createServer(options, function (req, res) {
-    console.log(req.headers['x-forwarded-for'], 'URL: ' + req.url)
+    console.log(requestIp.getClientIp(req), 'URL: ' + req.url)
     switch (req.url) {
         case '/favicon.ico':
             res.end()
