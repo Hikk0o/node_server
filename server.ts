@@ -14,7 +14,7 @@ https.createServer(options, function (req, res) {
     // GET
     const req_URL = new URL('https://hikk0o.dev' + req.url);
     const parts = url.parse(req.url,true);
-    console.log(parts.query)
+    // console.log(parts.query)
 
     // HTML and REDIRECT
     let req_url = req_URL.pathname
@@ -22,7 +22,6 @@ https.createServer(options, function (req, res) {
     let redirects = JSON.parse(fs.readFileSync('./redirects.json', 'utf8'));
     let req_path = req_URL.pathname.split('/')
     req_path.shift()
-    console.log(sitePath + req_url)
     if (req_path.length == 1) {
         if (req_path[0] == '') {
             openHtmlFile(res, req_url + '/index.html')
