@@ -1,6 +1,7 @@
 const https = require('https');
 const fs = require('fs');
 const requestIp = require('request-ip');
+const url = require("url");
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
@@ -10,13 +11,19 @@ const options = {
 const sitePath = './site/';
 
 https.createServer(options, function (req, res) {
-    consoleLog(req, 'URL: ' + req.url)
+    // GET
+    const req_URL = new URL('https://hikk0o.dev' + req.url);
+    const parts = url.parse(req.url,true);
+    console.log(parts.query)
+
+    // HTML and REDIRECT
+    let req_url = req_URL.pathname
+    consoleLog(req, 'URL: ' + req_url)
     let redirects = JSON.parse(fs.readFileSync('./redirects.json', 'utf8'));
-    let url = req.url
-    url = url.split('/')
-    url.shift()
-    if (url.length == 1) {
-        if (url[0] == '' || url[0] == 'index.html') {
+    let paths_req_urls = req_URL.pathname.split('/')
+    paths_req_urls.shift()
+    if (paths_req_urls.length == 1) {
+        if (paths_req_urls[0] == '' || paths_req_urls[0] == 'index.html') {
             fs.readFile(sitePath + 'index.html', null, function (error, html) {
                 if (error) {
                     page404(res)
@@ -28,30 +35,30 @@ https.createServer(options, function (req, res) {
                     res.end();
                 }
             });
-        } else if (url[0] == 'favicon.ico') {
+        } else if (paths_req_urls[0] == 'favicon.ico') {
             res.end()
-        } else if (redirects[url[0]] !== undefined) {
+        } else if (redirects[paths_req_urls[0]] !== undefined) {
             res.writeHead(301, {
-                Location: redirects[url[0]]
+                Location: redirects[paths_req_urls[0]]
             });
-            consoleLog(req, 'Redirect to ' + redirects[url[0]])
+            consoleLog(req, 'Redirect to ' + redirects[paths_req_urls[0]])
             res.end()
         } else {
             page404(res)
         }
     } else {
-        if (req.url.endsWith('.js') || req.url.endsWith('.css') || req.url.endsWith('.png')) {
+        if (req_url.endsWith('.js') || req_url.endsWith('.css') || req_url.endsWith('.png')) {
             let contentType = ''
-            if (req.url.endsWith('.js')) {
+            if (req_url.endsWith('.js')) {
                 contentType = 'text/javascript'
             }
-            if (req.url.endsWith('.css')) {
+            if (req_url.endsWith('.css')) {
                 contentType = 'text/css'
             }
-            if (req.url.endsWith('.png')) {
+            if (req_url.endsWith('.png')) {
                 contentType = 'image/png'
             }
-            fs.readFile(sitePath + req.url, null, function (error, html) {
+            fs.readFile(sitePath + req_url, null, function (error, html) {
                 if (error) {
                     page404(res)
                 } else {
