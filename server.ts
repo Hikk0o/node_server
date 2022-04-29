@@ -8,7 +8,7 @@ const options = {
     cert: fs.readFileSync('ssl/apache2.cert')
 };
 
-const sitePath = './site/';
+const sitePath = './site';
 
 https.createServer(options, function (req, res) {
     // GET
@@ -20,34 +20,29 @@ https.createServer(options, function (req, res) {
     let req_url = req_URL.pathname
     consoleLog(req, 'URL: ' + req_url)
     let redirects = JSON.parse(fs.readFileSync('./redirects.json', 'utf8'));
-    let paths_req_urls = req_URL.pathname.split('/')
-    paths_req_urls.shift()
-    if (paths_req_urls.length == 1) {
-        if (paths_req_urls[0] == '' || paths_req_urls[0] == 'index.html') {
-            fs.readFile(sitePath + 'index.html', null, function (error, html) {
-                if (error) {
-                    page404(res)
-                } else {
-                    res.writeHead(200,{
-                        'Content-Type': 'text/html'
-                    });
-                    res.write(html);
-                    res.end();
-                }
-            });
-        } else if (paths_req_urls[0] == 'favicon.ico') {
+    let req_path = req_URL.pathname.split('/')
+    req_path.shift()
+    console.log(sitePath + req_url)
+    if (req_path.length == 1) {
+        if (req_path[0] == '') {
+            openHtmlFile(res, req_url + '/index.html')
+        } else if (req_path[0] == 'favicon.ico') {
             res.end()
-        } else if (redirects[paths_req_urls[0]] !== undefined) {
+        } else if (redirects[req_path[0]] !== undefined) {
             res.writeHead(301, {
-                Location: redirects[paths_req_urls[0]]
+                Location: redirects[req_path[0]]
             });
-            consoleLog(req, 'Redirect to ' + redirects[paths_req_urls[0]])
+            consoleLog(req, 'Redirect to ' + redirects[req_path[0]])
             res.end()
+        } else if (req_url.endsWith('.html')) {
+            openHtmlFile(res, req_url)
         } else {
             page404(res)
         }
     } else {
-        if (req_url.endsWith('.js') || req_url.endsWith('.css') || req_url.endsWith('.png')) {
+        if (req_url.endsWith('.html')) {
+            openHtmlFile(res, req_url)
+        } else if (req_url.endsWith('.js') || req_url.endsWith('.css') || req_url.endsWith('.png')) {
             let contentType = ''
             if (req_url.endsWith('.js')) {
                 contentType = 'text/javascript'
@@ -77,7 +72,7 @@ https.createServer(options, function (req, res) {
 }).listen(443, '0.0.0.0');
 
 function page404(res) {
-    fs.readFile(sitePath + 'errors/404.html', null, function (error, html) {
+    fs.readFile(sitePath + '/errors/404.html', null, function (error, html) {
         if (error) {
             res.writeHead(404);
             res.write('Whoops! File not found!');
@@ -97,4 +92,18 @@ function consoleLog(req, msg) {
     let now = new Date();
     let time = '[' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + ']'
     console.log(time + ' ' + requestIp.getClientIp(req) + ' ' + msg)
+}
+
+function openHtmlFile(res, req_url) {
+    fs.readFile(sitePath + req_url, null, function (error, html) {
+        if (error) {
+            page404(res)
+        } else {
+            res.writeHead(200,{
+                'Content-Type': 'text/html'
+            });
+            res.write(html);
+            res.end();
+        }
+    });
 }
