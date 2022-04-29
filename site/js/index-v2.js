@@ -10,3 +10,7 @@ var typed = new Typed('.element', {
     startDelay: 300,
     backSpeed: 10
 });
+if (window.location.pathname === '/index.html') {
+    history.pushState(null, null, '/');
+    console.warn('Redirect to /')
+}
