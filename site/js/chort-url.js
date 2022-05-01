@@ -6,7 +6,7 @@ function getUrl() {
     // <p>Короткая ссылка: <input value="asdasdas"></p>
     if (xhr.status === 200) {
         if (xhr.responseText === 'client_error') {
-            alert( 'Некорректная ссылка' )
+            alert( 'Некорректная ссылка, попробуйте ещё раз' )
         } else {
             let res = document.getElementById("form")
             res.innerHTML =
