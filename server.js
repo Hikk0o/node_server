@@ -3,6 +3,7 @@ const fs = require('fs');
 const requestIp = require('request-ip');
 const url = require('url');
 const html_pages = require('./src/modules/html-pages');
+const validator = require('validator');
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
@@ -11,21 +12,35 @@ const options = {
 
 const sitePath = './site'
 
-https.createServer(options, function (req, res) {
-    // GET
-    const req_URL = new URL('https://hikk0o.dev' + req.url);
-    const parts = url.parse(req.url,true);
-    // console.log(parts.query)
 
-    // HTML and REDIRECT
+https.createServer(options, function (req, res) {
+
+    // start URL QUERY
+    const req_URL = new URL('https://hikk0o.dev' + req.url);
+    let redirects
+    const parts = url.parse(req.url,true);
+    if (parts.query['shorten'] === 'true') {
+        if (parts.query['url'] !== undefined && validator.isURL(parts.query['url'])) {
+            try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
+            let longUrl = parts.query['url']
+            let shortUrl = generateUrl(redirects)
+            redirects[shortUrl] = longUrl
+            try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                res.end('Server error!')
+            }
+            res.end('https://' + req.headers.host + '/' + shortUrl + '/')
+        } else {
+            res.end('Try https://' + req.headers.host + '/?shorten=true&url=[url]')
+        }
+        return
+    }
+    // end URL QUERY
+
     let req_url = req_URL.pathname
     consoleLog(req, 'URL: ' + req_url)
-    let redirects
-    try {
-        redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8'));
-    } catch (e) {
-        //pass
-    }
+
+    // start REDIRECT
+    try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
     let req_path = req_URL.pathname.split('/')
     req_path.shift()
     if (redirects[req_path[0]] !== undefined) {
@@ -34,7 +49,11 @@ https.createServer(options, function (req, res) {
         });
         consoleLog(req, 'Redirect to ' + redirects[req_path[0]])
         res.end()
-    } else if (req_path.length === 1) {
+    }
+    // end REDIRECT
+
+    // start HTML
+    else if (req_path.length === 1) {
         if (req_path[0] === '') {
             html_pages.openHtmlFile(res, req_url + '/index.html')
         } else if (req_path[0] === 'favicon.ico') {
@@ -74,10 +93,25 @@ https.createServer(options, function (req, res) {
             html_pages.openHtml404(res)
         }
     }
+    // end HTML
 }).listen(443, '0.0.0.0');
 
 function consoleLog(req, msg) {
     let now = new Date();
     let time = '[' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + ']'
     console.log(time + ' ' + requestIp.getClientIp(req) + ' ' + msg)
+}
+
+function generateUrl(redirects) {
+    let length = 6,
+        charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        retVal = "";
+    for (let i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    if (redirects[retVal] === undefined) {
+        return retVal;
+    } else {
+        return generateUrl(redirects)
+    }
 }
