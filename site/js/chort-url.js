@@ -3,7 +3,6 @@ function getUrl() {
     let xhr = new XMLHttpRequest();
     xhr.open('GET', '?shorten=true&url=' + url, false);
     xhr.send();
-    // <p>Короткая ссылка: <input value="asdasdas"></p>
     if (xhr.status === 200) {
         if (xhr.responseText === 'client_error') {
             alert( 'Некорректная ссылка, попробуйте ещё раз' )
