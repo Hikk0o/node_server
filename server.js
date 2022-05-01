@@ -15,34 +15,15 @@ const sitePath = './site'
 
 https.createServer(options, function (req, res) {
 
-    // start URL QUERY
     const req_URL = new URL('https://hikk0o.dev' + req.url);
-    let redirects
-    const parts = url.parse(req.url,true);
-    if (parts.query['shorten'] === 'true') {
-        if (parts.query['url'] !== undefined && validator.isURL(parts.query['url'])) {
-            try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
-            let longUrl = parts.query['url']
-            let shortUrl = generateUrl(redirects)
-            redirects[shortUrl] = longUrl
-            try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
-                res.end('Server error!')
-            }
-            res.end('https://' + req.headers.host + '/' + shortUrl + '/')
-        } else {
-            res.end('Try https://' + req.headers.host + '/?shorten=true&url=[url]')
-        }
-        return
-    }
-    // end URL QUERY
-
     let req_url = req_URL.pathname
     consoleLog(req, 'URL: ' + req_url)
+    let redirects
+    let req_path = req_URL.pathname.split('/')
+    req_path.shift()
 
     // start REDIRECT
     try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
-    let req_path = req_URL.pathname.split('/')
-    req_path.shift()
     if (redirects[req_path[0]] !== undefined) {
         res.writeHead(301, {
             Location: redirects[req_path[0]]
@@ -53,45 +34,55 @@ https.createServer(options, function (req, res) {
     // end REDIRECT
 
     // start HTML
-    else if (req_path.length === 1) {
-        if (req_path[0] === '') {
-            html_pages.openHtmlFile(res, req_url + '/index.html')
-        } else if (req_path[0] === 'favicon.ico') {
-            res.end()
-        } else if (req_url.endsWith('.html')) {
-            html_pages.openHtmlFile(res, req_url)
-        } else {
-            html_pages.openHtml404(res)
-        }
-    } else {
-        if (req_url.endsWith('.html')) {
-            html_pages.openHtmlFile(res, req_url)
-        } else if (req_url.endsWith('.js') || req_url.endsWith('.css') || req_url.endsWith('.png')) {
-            let contentType = ''
-            if (req_url.endsWith('.js')) {
-                contentType = 'text/javascript'
-            }
-            if (req_url.endsWith('.css')) {
-                contentType = 'text/css'
-            }
-            if (req_url.endsWith('.png')) {
-                contentType = 'image/png'
-            }
-            fs.readFile(sitePath + req_url, null, function (error, html) {
-                if (error) {
-                    html_pages.openHtml404(res)
-                } else {
-                    res.writeHead(200, {
-                        'Content-Type': contentType,
-                        'Cache-Control': 'max-age=31536000'
-                    });
-                    res.write(html);
-                    res.end();
+    if (req_path[0] === '') {
+        html_pages.openHtmlFile(res, req_url + 'index.html')
+    } else if (req_path[0] === 'favicon.ico') {
+        res.end()
+    } else if (req_path[0] === 'short-url') {
+        const parts = url.parse(req.url,true);
+        if (parts.query['shorten'] === 'true') {
+            if (parts.query['url'] !== undefined && validator.isURL(parts.query['url'])) {
+                try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
+                let longUrl = parts.query['url']
+                let shortUrl = generateUrl(redirects)
+                redirects[shortUrl] = longUrl
+                try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                    res.end('Server error!')
                 }
-            });
+                res.end('https://' + req.headers.host + '/' + shortUrl + '/')
+            } else {
+                res.end('client_error')
+            }
         } else {
-            html_pages.openHtml404(res)
+            html_pages.openHtmlFile(res, '/' + req_path[0] + '.html')
         }
+    } else if (req_url.endsWith('.html')) {
+        html_pages.openHtmlFile(res, req_url)
+    } else if (req_url.endsWith('.js') || req_url.endsWith('.css') || req_url.endsWith('.png')) {
+        let contentType = ''
+        if (req_url.endsWith('.js')) {
+            contentType = 'text/javascript'
+        }
+        if (req_url.endsWith('.css')) {
+            contentType = 'text/css'
+        }
+        if (req_url.endsWith('.png')) {
+            contentType = 'image/png'
+        }
+        fs.readFile(sitePath + req_url, null, function (error, html) {
+            if (error) {
+                html_pages.openHtml404(res)
+            } else {
+                res.writeHead(200, {
+                    'Content-Type': contentType,
+                    'Cache-Control': 'max-age=31536000'
+                });
+                res.write(html);
+                res.end();
+            }
+        });
+    } else {
+        html_pages.openHtml404(res)
     }
     // end HTML
 }).listen(443, '0.0.0.0');

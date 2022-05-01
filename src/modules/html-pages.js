@@ -1,9 +1,9 @@
 const fs = require('fs');
 
-const sitePath = './site'
+const sitePath = './site/pages'
 
 let openHtml404 = function(res) {
-    fs.readFile(sitePath + '/errors/404.html', null, function (error, html) {
+    fs.readFile(sitePath + '/pages/404.html', null, function (error, html) {
         if (error) {
             res.writeHead(404);
             res.write('Whoops! File not found!');
