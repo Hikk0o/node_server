@@ -36,7 +36,7 @@ https.createServer(options, function (req, res) {
     // start HTML
     if (req_path[0] === '') {
         html_pages.openHtmlFile(res, req_url + 'index.html')
-    } else if (req_path[0] === 'favicon.ico') {
+    } else if (req_url.endsWith('favicon.ico')) {
         res.end()
     } else if (req_path[0] === 'short-url') {
         const parts = url.parse(req.url,true);
