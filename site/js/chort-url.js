@@ -9,8 +9,10 @@ function getUrl() {
         } else {
             let res = document.getElementById("form")
             res.innerHTML =
-                "<p>Короткая ссылка: <input onFocus=\"this.select()\" id=\"input\" style=\"width: 200px\" value=\""+ xhr.responseText +"\" readonly></p>" +
-                "<p><div onclick=\"window.location.reload()\" style=\"cursor: pointer; user-select: none; border: 1px solid black; border-radius: 3px; width: 100px; text-align: center\">Вернуться</div></p>";
+                "<div style=\" display: flex; flex-direction: column; align-items: center; padding: 30px 0 30px 0\">" +
+                "<div>Короткая ссылка: <input onFocus=\"this.select()\" id=\"input\" style=\"width: 200px\" value=\""+ xhr.responseText +"\" readonly></div>" +
+                "<div onclick=\"window.location.reload()\" style=\"margin-top: 10px; cursor: pointer; user-select: none; border: 1px solid black; border-radius: 3px; width: 100px; text-align: center\">Вернуться</div>" +
+                "</div>";
         }
     } else {
         alert( 'Error' );

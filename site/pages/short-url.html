@@ -8,9 +8,11 @@
 <div style=" width: 700px; height: 125px; margin: auto">
  <form>
       <fieldset id="form">
-        <legend>Укоротить ссылку</legend>
-        <p><label for="url">Исходная ссылка: </label><input style="width: 500px" type="url" id="url"></p>
-        <p><div onclick="getUrl()" style="cursor: pointer; user-select: none; border: 1px solid black; border-radius: 3px; width: 100px; text-align: center">Отправить</div></p>
+          <legend>Укоротить ссылку</legend>
+          <div style=" display: flex; flex-direction: column; align-items: center; padding: 30px 0 30px 0">
+              <div><label for="url">Исходная ссылка: </label><input style="width: 500px" type="url" id="url"></div>
+              <div onclick="getUrl()" style="margin-top: 10px; cursor: pointer; user-select: none; border: 1px solid black; border-radius: 3px; width: 100px; text-align: center">Отправить</div>
+          </div>
       </fieldset>
  </form>
 </div>
