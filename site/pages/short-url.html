@@ -1,20 +1,23 @@
 <!DOCTYPE HTML>
 <html>
- <head>
-  <meta charset="utf-8">
-  <title></title>
- </head>
- <body>
-<div style=" width: 700px; height: 125px; margin: auto">
- <form>
-      <fieldset id="form">
-          <legend>Укоротить ссылку</legend>
-          <div style=" display: flex; flex-direction: column; align-items: center; padding: 30px 0 30px 0">
-              <div><label for="url">Исходная ссылка: </label><input style="width: 500px" type="url" id="url"></div>
-              <div onclick="getUrl()" style="margin-top: 10px; cursor: pointer; user-select: none; border: 1px solid black; border-radius: 3px; width: 100px; text-align: center">Отправить</div>
-          </div>
-      </fieldset>
- </form>
+<head>
+ <link rel="stylesheet" type="text/css" href="/css/style-v2.css" media="screen">
+ <meta charset="utf-8">
+<title></title>
+</head>
+
+<body>
+<canvas id="anim-background"></canvas>
+<div style="display: flex; height: 100vh; width: 100vw">
+    <div style="margin: auto; z-index: 2; background-color: #383b54; box-shadow: 0 0 8px #383b54; border: 1px solid rgba(255,255,255,0.65); border-radius: 5px">
+        <form style="padding: 15px" id="form">
+                <a style="font-weight: bold">Укоротить ссылку</a>
+                <div style="display: flex; flex-direction: column; align-items: center; padding: 30px 0 30px 0">
+                    <div style="display: flex; align-items: center;"><label for="url" style="margin-right: 10px">Исходная ссылка:</label><div style="border: 1px solid rgb(255,255,255,0.65); border-radius: 3px; padding: 3px; background-color: rgba(145,145,180,0.53)"><input style="outline:none; color: white; width: 500px; background-color: rgba(0,0,0,0); border: 1px solid rgba(255,255,255,0)" type="url" id="url"></div></div>
+                    <div onclick="getUrl()" style="background-color: white; color: #1e1f2a; text-shadow: none; margin-top: 15px; cursor: pointer; user-select: none; border: 1px solid rgba(255,255,255,0.65); border-radius: 3px; box-shadow: 0 0 2px rgba(255,255,255,0.76); padding: 0 10px 0 10px; text-align: center; font-size: 15px">Отправить</div>
+                </div>
+        </form>
+    </div>
 </div>
 
  <script src="/js/chort-url.js"></script>
