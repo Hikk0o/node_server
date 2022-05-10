@@ -3,4 +3,5 @@
 /ssl/
 /.idea/
 /src/redirects.json
-/site/pages/frame.html
+/site/pages/upload.html
+/download/

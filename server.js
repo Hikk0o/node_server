@@ -4,6 +4,9 @@ const requestIp = require('request-ip');
 const url = require('url');
 const html_pages = require('./src/modules/html-pages');
 const validator = require('validator');
+const busboy = require('busboy');
+const path = require('path');
+
 
 const options = {
     key: fs.readFileSync('ssl/apache2.key'),
@@ -11,7 +14,6 @@ const options = {
 };
 
 const sitePath = './site'
-
 
 https.createServer(options, function (req, res) {
 
@@ -35,8 +37,41 @@ https.createServer(options, function (req, res) {
 
     // start HTML
     if (req_path[0] === '') {
-        html_pages.openHtmlFile(res, req_url + 'index.html')
-    } else if (req_url.endsWith('favicon.ico')) {
+        const parts = url.parse(req.url,true);
+        try { redirects = JSON.parse(fs.readFileSync('./src/redirects.json', 'utf8')); } catch (e) {/* pass */}
+
+        if (parts.query['file'] !== undefined) {
+            fs.readFile('./download/' + parts.query['file'], null, function (error, data) {
+                if (error) {
+                    html_pages.openHtml404(res)
+                } else {
+                    res.end(data);
+                }
+            });
+        } else {
+            html_pages.openHtmlFile(res, req_url + 'index.html')
+        }
+    }
+    else if (req_path[0] === 'upload' && req.method === 'POST') {
+        const bb = busboy({ headers: req.headers });
+        let filepath = generateUrl(redirects)
+        bb.on('file', (name, file, info) => {
+            if (info.filename.endsWith('.png') || info.filename.endsWith('.jpg') || info.filename.endsWith('.jpeg')) {
+                const saveTo = path.join('./download/', `${filepath}.` + info.mimeType.split('/')[1]);
+                file.pipe(fs.createWriteStream(saveTo));
+            }
+            redirects[filepath] = '/?file=' + `${filepath}.` + info.mimeType.split('/')[1]
+            try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                res.end('Server error!')
+            }
+        });
+        bb.on('close', () => {
+            res.writeHead(200, { 'Connection': 'close' });
+            res.end('https://' + req.headers.host + '/' + filepath + '/')
+        });
+        req.pipe(bb);
+    }
+    else if (req_url.endsWith('favicon.ico')) {
         res.end()
     } else if (req_path[0] === 'short-url') {
         const parts = url.parse(req.url,true);
@@ -82,7 +117,7 @@ https.createServer(options, function (req, res) {
             }
         });
     } else {
-        html_pages.openHtml404(res)
+        html_pages.openHtmlFile(res, req_path[0] + '.html')
     }
     // end HTML
 }).listen(443, '0.0.0.0');

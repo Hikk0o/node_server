@@ -1,12 +1,13 @@
 const fs = require('fs');
 
-const sitePath = './site/pages'
+const sitePath = './site/'
 
 let openHtml404 = function(res) {
     fs.readFile(sitePath + '/pages/404.html', null, function (error, html) {
         if (error) {
             res.writeHead(404);
             res.write('Whoops! File not found!');
+            console.log('Error 404')
             res.end()
         } else {
             res.writeHead(200, {
@@ -19,7 +20,7 @@ let openHtml404 = function(res) {
     });
 }
 let openHtmlFile = function(res, req_url) {
-    fs.readFile(sitePath + req_url, null, function (error, html) {
+    fs.readFile(sitePath + '/pages/' + req_url, null, function (error, html) {
         if (error) {
             openHtml404(res)
         } else {
