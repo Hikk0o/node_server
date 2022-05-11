@@ -53,23 +53,30 @@ https.createServer(options, function (req, res) {
         }
     }
     else if (req_path[0] === 'upload' && req.method === 'POST') {
-        const bb = busboy({ headers: req.headers });
-        let filepath = generateUrl(redirects)
-        bb.on('file', (name, file, info) => {
-            if (info.filename.endsWith('.png') || info.filename.endsWith('.jpg') || info.filename.endsWith('.jpeg')) {
-                const saveTo = path.join('./download/', `${filepath}.` + info.mimeType.split('/')[1]);
-                file.pipe(fs.createWriteStream(saveTo));
-            }
-            redirects[filepath] = '/?file=' + `${filepath}.` + info.mimeType.split('/')[1]
-            try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
-                res.end('Server error!')
-            }
-        });
-        bb.on('close', () => {
-            res.writeHead(200, { 'Connection': 'close' });
-            res.end('https://' + req.headers.host + '/' + filepath + '/')
-        });
-        req.pipe(bb);
+        try {
+            const bb = busboy({ headers: req.headers });
+            let filepath = generateUrl(redirects)
+            bb.on('file', (name, file, info) => {
+                if (info.filename === undefined) return
+                if (info.filename.endsWith('.png') || info.filename.endsWith('.jpg') || info.filename.endsWith('.jpeg')) {
+                    const saveTo = path.join('./download/', `${filepath}.` + info.mimeType.split('/')[1]);
+                    file.pipe(fs.createWriteStream(saveTo));
+                }
+                redirects[filepath] = '/?file=' + `${filepath}.` + info.mimeType.split('/')[1]
+                try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                    res.end('Server error!')
+                }
+            });
+            bb.on('close', () => {
+                res.writeHead(200, { 'Connection': 'close' });
+                res.end('https://' + req.headers.host + '/' + filepath + '/')
+            });
+            req.pipe(bb);
+
+        } catch (e) {
+            consoleLog(req, e)
+            res.end('Server error!')
+        }
     }
     else if (req_url.endsWith('favicon.ico')) {
         res.end()

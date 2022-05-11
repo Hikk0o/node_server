@@ -10,9 +10,37 @@
 <body>
 <h1>Upload files to Server</h1>
 
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="filetoupload">
+<form id="form" method="POST" enctype="multipart/form-data">
+    <input id="file" type="file" name="filetoupload">
     <input type="submit" value="Upload">
 </form>
+<script>
+    const form = document.querySelector('#form');
+    const file = document.querySelector('#file');
+    form.addEventListener('submit', function(evt) {
+        evt.preventDefault();
+        if(!file.value) {
+            console.log('File empty')
+            return;
+        }
+        this.submit();
+    });
+
+    document.onpaste = function (event) {
+        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        console.log(JSON.stringify(items)); // might give you mime types
+        for (var index in items) {
+            var item = items[index];
+            if (item.kind === 'file') {
+                var blob = item.getAsFile();
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    console.log(event.target.result); // data url!
+                };
+                reader.readAsDataURL(blob);
+            }
+        }
+    };
+</script>
 </body>
 </html>
