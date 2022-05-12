@@ -6,6 +6,7 @@ const html_pages = require('./src/modules/html-pages');
 const validator = require('validator');
 const busboy = require('busboy');
 const path = require('path');
+const sharp = require("sharp");
 
 
 const options = {
@@ -54,22 +55,44 @@ https.createServer(options, function (req, res) {
     }
     else if (req_path[0] === 'upload' && req.method === 'POST') {
         try {
+            let path_to_file = ''
             const bb = busboy({ headers: req.headers });
-            let filepath = generateUrl(redirects)
+            let short_path = generateUrl(redirects)
             bb.on('file', (name, file, info) => {
                 if (info.filename === undefined) return
-                if (info.filename.endsWith('.png') || info.filename.endsWith('.jpg') || info.filename.endsWith('.jpeg')) {
-                    const saveTo = path.join('./download/', `${filepath}.` + info.mimeType.split('/')[1]);
-                    file.pipe(fs.createWriteStream(saveTo));
+                if (!info.mimeType.startsWith('image/')) {
+                    res.end('Invalid file!')
+                    return;
+
                 }
-                redirects[filepath] = '/?file=' + `${filepath}.` + info.mimeType.split('/')[1]
-                try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                if (info.filename.endsWith('.png') || info.filename.endsWith('.jpg') || info.filename.endsWith('.jpeg')) {
+                    path_to_file = __dirname + '/download/' + `${short_path}.` + info.mimeType.split('/')[1];
+                    const saveTo = path.join(__dirname + '/download/', `${short_path}.` + info.mimeType.split('/')[1]);
+                    file.pipe(fs.createWriteStream(saveTo));
+                    redirects[short_path] = '/?file=' + `${short_path}.` + info.mimeType.split('/')[1]
+                    try { fs.writeFileSync('./src/redirects.json', JSON.stringify(redirects)); } catch (e) {
+                        consoleLog(req, e)
+                        res.end('Server error!')
+                    }
+                } else {
+                    res.end('Invalid file!')
+                }
+
+            }).on('close', () => {
+                res.writeHead(200, { 'Connection': 'close' });
+                try {
+                    setTimeout(() => {
+                        sharp(fs.readFileSync(path_to_file))
+                            .png({ quality: 85, progressive: true, force: false })
+                            .toFile(path_to_file).then().catch()
+
+                        res.end('https://' + req.headers.host + '/' + short_path + '/')
+                    }, 500) // ms
+
+                } catch (e) {
+                    consoleLog(req, e)
                     res.end('Server error!')
                 }
-            });
-            bb.on('close', () => {
-                res.writeHead(200, { 'Connection': 'close' });
-                res.end('https://' + req.headers.host + '/' + filepath + '/')
             });
             req.pipe(bb);
 

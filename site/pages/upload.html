@@ -14,6 +14,7 @@
     <input id="file" type="file" name="filetoupload">
     <input type="submit" value="Upload">
 </form>
+<script src="/js/axios.min.js"></script>
 <script>
     const form = document.querySelector('#form');
     const file = document.querySelector('#file');
@@ -23,24 +24,32 @@
             console.log('File empty')
             return;
         }
-        this.submit();
+        form.innerHTML = `<input onFocus='this.select()' value='Loading...' readonly>`
+        sendOnServer(file.files[0])
     });
 
     document.onpaste = function (event) {
-        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        let items = (event.clipboardData || event.originalEvent.clipboardData).items;
         console.log(JSON.stringify(items)); // might give you mime types
-        for (var index in items) {
-            var item = items[index];
-            if (item.kind === 'file') {
-                var blob = item.getAsFile();
-                var reader = new FileReader();
-                reader.onload = function (event) {
-                    console.log(event.target.result); // data url!
-                };
-                reader.readAsDataURL(blob);
-            }
+        let item = items[0];
+        if (item.kind === 'file') {
+            form.innerHTML = `<input onFocus='this.select()' value='Loading...' readonly>`
+            let blob = item.getAsFile();
+            sendOnServer(blob)
         }
     };
+
+    function sendOnServer(file) {
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+        let fd = new FormData();
+        fd.append('image', file)
+
+        axios.post("/upload", fd, config).then(function (response) {
+            // handle success
+            form.innerHTML = `<input onFocus='this.select()' value='${response.data}' readonly>`
+            console.log(response.data);
+        })
+    }
 </script>
 </body>
 </html>
