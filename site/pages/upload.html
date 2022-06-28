@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Upload File</title>
     <style>
         body{text-align:center;}
@@ -11,43 +12,101 @@
 <h1>Upload files to Server</h1>
 
 <form id="form" method="POST" enctype="multipart/form-data">
-    <input id="file" type="file" name="filetoupload">
+    <input id="file" type="file" name="filetoupload" accept="image/jpeg, image/png, image/jpg" content="123">
     <input type="submit" value="Upload">
 </form>
-<script src="/js/axios.min.js"></script>
+<script src="/js/axios.js"></script>
 <script>
     const form = document.querySelector('#form');
     const file = document.querySelector('#file');
+    const validSizeFile = 10; // MB
+    let canceled = false;
+
+    file.addEventListener('change', function () {
+        if (!validSize(this.files[0])) {
+            this.value = null
+        }
+    });
+
     form.addEventListener('submit', function(evt) {
+        if (canceled) return
         evt.preventDefault();
         if(!file.value) {
             console.log('File empty')
             return;
         }
         form.innerHTML = `<input onFocus='this.select()' value='Loading...' readonly>`
-        sendOnServer(file.files[0])
+        let reader = new FileReader();
+        reader.readAsDataURL(file.files[0]);
+        reader.onloadend = function() {
+            let base64data = reader.result;
+            sendOnServer(base64data)
+        }
     });
 
     document.onpaste = function (event) {
+        if (canceled) return
         let items = (event.clipboardData || event.originalEvent.clipboardData).items;
-        console.log(JSON.stringify(items)); // might give you mime types
         let item = items[0];
         if (item.kind === 'file') {
-            form.innerHTML = `<input onFocus='this.select()' value='Loading...' readonly>`
             let blob = item.getAsFile();
-            sendOnServer(blob)
+            if (!validSize(blob)) return;
+            form.innerHTML = `<input onFocus='this.select()' value='Loading...' readonly>`
+            let reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function() {
+                let base64data = reader.result;
+                sendOnServer(base64data)
+            }
+
         }
     };
 
-    function sendOnServer(file) {
-        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-        let fd = new FormData();
-        fd.append('image', file)
+    function validSize(file) {
+        let fileSize = file.size
+        if (fileSize > validSizeFile * 1048576) {
+            alert(`Загружаемый файл (${(fileSize / 1048576).toFixed(2)}MB) превышает допустимый размер (${validSizeFile}MB)`)
+            return false
+        }
+        return true
+    }
 
-        axios.post("/upload", fd, config).then(function (response) {
+    function sendOnServer(file) {
+        console.log(file.toString())
+        return
+        if (canceled) return
+        canceled = true
+        const config = { headers: { 'Content-Type': 'text/plain' } };
+        if (!file.toString().startsWith("data:image")) {
+            form.innerHTML =
+                "<input id=\"file\" type=\"file\" name=\"filetoupload\" accept=\"image/jpeg, image/png, image/jpg\">\n" +
+                "<input type=\"submit\" value=\"Upload\">"
+            canceled = false
+            return alert("Неверный формат файла")
+
+        }
+
+        axios.post("/upload", file, config).then(function (response) {
+            if (response.data === "WrongData") {
+                canceled = false
+                form.innerHTML =
+                    "<input id=\"file\" type=\"file\" name=\"filetoupload\" accept=\"image/jpeg, image/png, image/jpg\">\n" +
+                    "<input type=\"submit\" value=\"Upload\">"
+                return alert("Неверный формат файла")
+            }
+            if (response.data === "ServerError") {
+                canceled = false
+                alert("Произошла ошибка в API, страница будет перезагружена")
+                return window.location.reload()
+            }
             // handle success
-            form.innerHTML = `<input onFocus='this.select()' value='${response.data}' readonly>`
+            form.innerHTML = `<input onFocus='this.select()' value='hikk0o.dev/i/${response.data}' readonly>`
+            navigator.clipboard.writeText(`https://hikk0o.dev/i/${response.data}`);
             console.log(response.data);
+        }).catch(function () {
+            canceled = false
+            alert("Произошла ошибка при запросе к серверу, страница будет перезагружена")
+            return window.location.reload()
         })
     }
 </script>

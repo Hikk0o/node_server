@@ -2,7 +2,3 @@
 /node_modules/
 /ssl/
 /.idea/
-/src/redirects.json
-/site/pages/upload.html
-/download/
-/.vscode/
