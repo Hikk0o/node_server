@@ -11,7 +11,7 @@
 
 ### Получение контента из короткой ссылки
 <details>
-  <summary>C# код</summary>
+  <summary>NodeJS код</summary>
   
 ```js
     const axios = require('axios');
@@ -68,7 +68,7 @@
 При отправке фотографий, файл сжимается через библиотеку `sharp`, конвертируется в тектовый формат base64 и вставляется в тело запроса.
 
 <details>
-  <summary>C# код</summary>
+  <summary>NodeJS код</summary>
   
 ```js
     const sharp = require('sharp');
